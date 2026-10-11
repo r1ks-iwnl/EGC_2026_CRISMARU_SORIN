@@ -22,4 +22,9 @@ Desktop.dll: 'Context profiles are only defined for OpenGL version 3.2 and above
 c) Întrebare: De ce apelul GL.ClearColor(...) este în OnRenderFrame și nu în OnLoad? Ar mai funcționa animația dacă l-am muta în OnLoad?
 
 Pentru a rula la fiecare cadru, nu doar o singură dată. Nu.
-  
+
+**Problema 2 - Culoarea triunghiului.**
+
+c) În Triangle.cs, schimbați culorile din tabloul Vertices (de exemplu: galben, cyan, magenta). Întrebare: Cum se obține culoarea pixelilor din interiorul triunghiului, dacă am dat culori doar vârfurilor?
+
+Culorile sunt interpolate pe baza vârfurilor în procesul de rasterizare.

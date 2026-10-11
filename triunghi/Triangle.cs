@@ -18,9 +18,9 @@ public sealed class Triangle : IDisposable
     public float[] Vertices { get; } = new float[]
     {
         //  poziție (x, y, z)      culoare (r, g, b)
-        -0.5f, -0.5f, 0.0f,      1.0f, 0.0f, 0.0f,   // vârful 0: stânga-jos, roșu
-         0.5f, -0.5f, 0.0f,      0.0f, 1.0f, 0.0f,   // vârful 1: dreapta-jos, verde
-         0.0f,  0.5f, 0.0f,      0.0f, 0.0f, 1.0f    // vârful 2: sus, albastru
+        -0.5f, -0.5f, 0.0f,      0.5f, 0.5f, 0.0f,   // vârful 0: stânga-jos, roșu
+         0.5f, -0.5f, 0.0f,      0.5f, 0.5f, 0.0f,   // vârful 1: dreapta-jos, verde
+         0.0f,  0.5f, 0.0f,      0.5f, 0.5f, 0.0f,   // vârful 2: sus, albastru
     };
 
     // Indicii: ordinea în care sunt luate vârfurile pentru a forma triunghiuri.

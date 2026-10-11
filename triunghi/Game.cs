@@ -21,7 +21,7 @@ public class Game : GameWindow
 
     // Starea aplicației (se modifică în OnUpdateFrame, se folosește în OnRenderFrame).
     private Color4 _clearColor = new(0.0f, 0.0f, 0.5f, 0.5f);   // culoarea de fundal
-    private Color4 _tint = Color4.White;                          // nuanța triunghiului (alb = neschimbat)
+    private Color4 _tint = new Color4(1.0f, 0.3f, 0.3f, 1.0f);                       // nuanța triunghiului (alb = neschimbat)
     private Vector3 _offset = Vector3.Zero;                       // deplasarea triunghiului
 
     // Contoare pentru exemplul cu bucla principală (afișate în titlul ferestrei).
@@ -60,6 +60,8 @@ public class Game : GameWindow
 
         _shader = Shader.FromFiles("Shaders/shader.vert", "Shaders/shader.frag");
         _triangle = new Triangle();
+        _triangle.SetColor(2, 1.0f, 1.0f, 1.0f);
+        _triangle.UpdateVertices();
     }
 
     /// <summary>Apelată când se schimbă dimensiunea ferestrei.</summary>
@@ -83,6 +85,22 @@ public class Game : GameWindow
         if (KeyboardState.IsKeyDown(Keys.Escape))
         {
             Close();
+        }
+        if (KeyboardState.IsKeyPressed(Keys.D1))
+        {
+            _tint = new Color4(1.0f, 0.3f, 0.3f, 1.0f); 
+        }
+        if (KeyboardState.IsKeyPressed(Keys.D2))
+        {
+            _tint = new Color4(0.3f, 1.0f, 0.3f, 1.0f); 
+        }
+        if (KeyboardState.IsKeyPressed(Keys.D3))
+        {
+            _tint = new Color4(0.3f, 0.3f, 1.0f, 1.0f); 
+        }
+        if (KeyboardState.IsKeyPressed(Keys.D0))
+        {
+            _tint = Color4.White;
         }
 
         // --- TODO (P1–P5): codul vostru de logică se adaugă aici ---
