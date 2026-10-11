@@ -60,6 +60,7 @@ public class Game : GameWindow
 
         _shader = Shader.FromFiles("Shaders/shader.vert", "Shaders/shader.frag");
         _triangle = new Triangle();
+        GL.ClearColor(_clearColor.R, _clearColor.G, _clearColor.B, _clearColor.A);
     }
 
     /// <summary>Apelată când se schimbă dimensiunea ferestrei.</summary>
@@ -86,7 +87,9 @@ public class Game : GameWindow
         }
 
         // --- TODO (P1–P5): codul vostru de logică se adaugă aici ---
-
+        _clearColor.R = 0.5f + 0.5f * MathF.Sin((float)_elapsed);
+        _clearColor.G = 0.5f + 0.5f * MathF.Sin((float)_elapsed - (2*MathF.PI)/3);
+        _clearColor.B = 0.5f + 0.5f * MathF.Sin((float)_elapsed - (4*MathF.PI)/3);
 
         // Exemplul bucla principală: o dată pe secundă afișăm în titlu câte
         // actualizări și câte cadre desenate au avut loc.
@@ -108,7 +111,7 @@ public class Game : GameWindow
 
         // 1. Ștergem imaginea veche din back buffer. GL.ClearColor SETEAZĂ starea (culoarea de ștergere),
         //    GL.Clear o FOLOSEȘTE. Aici o setăm la fiecare cadru pentru că vom putea s-o schimbăm (P1).
-        GL.ClearColor(_clearColor.R, _clearColor.G, _clearColor.B, _clearColor.A);
+        //GL.ClearColor(_clearColor.R, _clearColor.G, _clearColor.B, _clearColor.A);
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
         // 2. Activăm programul shader și îi trimitem uniformele.

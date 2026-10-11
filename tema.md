@@ -16,3 +16,10 @@ Desktop.dll: 'Context profiles are only defined for OpenGL version 3.2 and above
    at OpenTK.Windowing.Desktop.GameWindow..ctor(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings)<br>
    at Egc.Game..ctor(Int32 width, Int32 height, String title) in C:\Users\Sorin\Downloads\triunghi\Game.cs:line 35<br>
    at Program. $(String[] args) in C:\Users\Sorin\Downloads\triunghi\Program.cs:line 5<br>
+
+**Problema 1 - Culoarea de fundal.**
+
+c) Întrebare: De ce apelul GL.ClearColor(...) este în OnRenderFrame și nu în OnLoad? Ar mai funcționa animația dacă l-am muta în OnLoad?
+
+Pentru a rula la fiecare cadru, nu doar o singură dată. Nu.
+  
