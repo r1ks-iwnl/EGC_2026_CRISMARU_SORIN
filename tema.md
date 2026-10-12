@@ -45,3 +45,12 @@ e) Deplasați triunghiul până când iese din fereastră. Întrebare: Ce se în
 
 Asamblarea primitivelor, decupare, viewport: Triunghiul este decupat
 
+**Problema 5 - Deformarea triunghiului (vârfuri deplasate individual).**
+
+b) Întrebare: Ce se întâmplă dacă uitați UpdateVertices()? De ce?
+
+Nimic. Mișcarea este vizibilă doar dacă VRAM-ul este actualizat.
+
+d) Întrebare: Care dintre problemele 4 și 5 transferă mai multe date către GPU la fiecare cadru? Comparați SetVector3 (uniformă) cu BufferSubData (18 float). Ce ar însemna asta pentru un model cu un milion de vârfuri?
+
+Problema 5. SetVector3 trimite doar cele 3 valori de pozitie iar transmite toate valorile de poziție a vârfurilor pentru fiecare cadru, pentru un milion de vârfuri: 1.000.000 vârfuri * 6 valori * 4 bytes = 24 MB/frame 

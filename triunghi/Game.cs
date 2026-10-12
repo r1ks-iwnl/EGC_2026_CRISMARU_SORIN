@@ -126,6 +126,10 @@ public class Game : GameWindow
         _clearColor.B = 0.5f + 0.5f * MathF.Sin((float)_elapsed - (4*MathF.PI)/3);
         //_offset.X = 0.5f * MathF.Sin((float)_elapsed);
 
+        _triangle.SetPosition(0, 0.5f + 0.1f * MathF.Sin((float)_elapsed), 0f);
+        _triangle.SetPosition(1, 0.0f, 0.5f + 0.4f * MathF.Sin((float)_elapsed));
+        _triangle.SetPosition(2, 0.0f, 0.5f + 0.1f * MathF.Sin((float)_elapsed));
+        _triangle.UpdateVertices();
         // Exemplul bucla principală: o dată pe secundă afișăm în titlu câte
         // actualizări și câte cadre desenate au avut loc.
         _secondTimer += args.Time;
