@@ -35,3 +35,13 @@ c) Întrebare: Dacă apelați GL.PolygonMode o singură dată în OnLoad și nu 
 
 Triunghiul rămâne la modul setat în OnLoad. Principiul ilustrat este funcționarea ca state-machine unde starea rămâne până este modificată iarăși.
 
+**Problema 4 - Deplasarea triunghiului.**
+
+d) Opriți VSync (secțiunea 5.5) și verificați că viteza de deplasare pe ecran nu depinde de numărul de cadre pe secundă. Întrebare: Ce s-ar întâmpla dacă am folosi un pas fix pe cadru (de exemplu _offset.X -= 0.01f;)?
+
+Viteza mișcării ar fi bazată pe numărul de cadre pe secundă.
+
+e) Deplasați triunghiul până când iese din fereastră. Întrebare: Ce se întâmplă cu părțile care ies din cubul NDC și în ce etapă a pipeline-ului?
+
+Asamblarea primitivelor, decupare, viewport: Triunghiul este decupat
+

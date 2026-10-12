@@ -22,7 +22,7 @@ public class Game : GameWindow
     // Starea aplicației (se modifică în OnUpdateFrame, se folosește în OnRenderFrame).
     private Color4 _clearColor = new(0.0f, 0.0f, 0.5f, 0.5f);   // culoarea de fundal
     private Color4 _tint = new Color4(1.0f, 0.3f, 0.3f, 1.0f);                       // nuanța triunghiului (alb = neschimbat)
-    private Vector3 _offset = Vector3.Zero;                       // deplasarea triunghiului
+    private Vector3 _offset = new Vector3(0.3f, 0.2f, 0.0f);                   // deplasarea triunghiului
 
     private bool _wireframe = false;
 
@@ -111,10 +111,20 @@ public class Game : GameWindow
             _wireframe = !_wireframe;
         }
 
+        if (KeyboardState.IsKeyDown(Keys.Left))
+        {
+            _offset.X -= 1 * (float)args.Time;
+        }
+        if (KeyboardState.IsKeyDown(Keys.Right))
+        {
+            _offset.X += 1 * (float)args.Time;
+        }
+
         // --- TODO (P1–P5): codul vostru de logică se adaugă aici ---
         _clearColor.R = 0.5f + 0.5f * MathF.Sin((float)_elapsed);
         _clearColor.G = 0.5f + 0.5f * MathF.Sin((float)_elapsed - (2*MathF.PI)/3);
         _clearColor.B = 0.5f + 0.5f * MathF.Sin((float)_elapsed - (4*MathF.PI)/3);
+        //_offset.X = 0.5f * MathF.Sin((float)_elapsed);
 
         // Exemplul bucla principală: o dată pe secundă afișăm în titlu câte
         // actualizări și câte cadre desenate au avut loc.
