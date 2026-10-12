@@ -28,3 +28,10 @@ Pentru a rula la fiecare cadru, nu doar o singură dată. Nu.
 c) În Triangle.cs, schimbați culorile din tabloul Vertices (de exemplu: galben, cyan, magenta). Întrebare: Cum se obține culoarea pixelilor din interiorul triunghiului, dacă am dat culori doar vârfurilor?
 
 Culorile sunt interpolate pe baza vârfurilor în procesul de rasterizare.
+
+**Problema 3 - Triunghi plin și contur.**
+
+c) Întrebare: Dacă apelați GL.PolygonMode o singură dată în OnLoad și nu mai apelați nimic în OnRenderFrame, ce se întâmplă? Ce principiu OpenGL ilustrează acest lucru?
+
+Triunghiul rămâne la modul setat în OnLoad. Principiul ilustrat este funcționarea ca state-machine unde starea rămâne până este modificată iarăși.
+
