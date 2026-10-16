@@ -22,7 +22,7 @@ public class Game : GameWindow
     // Starea aplicației (se modifică în OnUpdateFrame, se folosește în OnRenderFrame).
     private Color4 _clearColor = new(0.0f, 0.0f, 0.5f, 0.5f);   // culoarea de fundal
     private Color4 _tint = new Color4(1.0f, 0.3f, 0.3f, 1.0f);                       // nuanța triunghiului (alb = neschimbat)
-    private Vector3 _offset = new Vector3(0.3f, 0.2f, 0.0f);                   // deplasarea triunghiului
+    private Vector3 _offset = new Vector3(0.0f, 0.0f, 0.0f);                   // deplasarea triunghiului
 
     private bool _wireframe = false;
 
@@ -119,6 +119,14 @@ public class Game : GameWindow
         {
             _offset.X += 1 * (float)args.Time;
         }
+        if (KeyboardState.IsKeyDown(Keys.Up))
+        {
+            _offset.Y += 1 * (float)args.Time;
+        }
+        if (KeyboardState.IsKeyDown(Keys.Down))
+        {
+            _offset.Y -= 1 * (float)args.Time;
+        }
 
         // --- TODO (P1–P5): codul vostru de logică se adaugă aici ---
         _clearColor.R = 0.5f + 0.5f * MathF.Sin((float)_elapsed);
@@ -126,9 +134,9 @@ public class Game : GameWindow
         _clearColor.B = 0.5f + 0.5f * MathF.Sin((float)_elapsed - (4*MathF.PI)/3);
         //_offset.X = 0.5f * MathF.Sin((float)_elapsed);
 
-        _triangle.SetPosition(0, 0.5f + 0.1f * MathF.Sin((float)_elapsed), 0f);
-        _triangle.SetPosition(1, 0.0f, 0.5f + 0.4f * MathF.Sin((float)_elapsed));
-        _triangle.SetPosition(2, 0.0f, 0.5f + 0.1f * MathF.Sin((float)_elapsed));
+        _triangle.SetPosition(0, 0.5f - 0.4f * MathF.Sin((float)_elapsed), 0f);
+        _triangle.SetPosition(1, 0.5f + 0.3f * MathF.Cos((float)_elapsed), 0f);
+        _triangle.SetPosition(2, 0.5f + 0.4f * MathF.Sin((float)_elapsed), 0.5f + 0.4f * MathF.Sin((float)_elapsed));
         _triangle.UpdateVertices();
         // Exemplul bucla principală: o dată pe secundă afișăm în titlu câte
         // actualizări și câte cadre desenate au avut loc.
@@ -160,13 +168,13 @@ public class Game : GameWindow
         _shader.SetVector3("uOffset", _offset);
         _shader.SetColor("uTint", _tint);
         
-/*         if (_wireframe)
+         if (_wireframe)
         {
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
         } else
         {
             GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-        } */
+        }
 
         // 3. Desenăm triunghiul.
         _triangle.Draw();
