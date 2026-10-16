@@ -3,10 +3,10 @@ using OpenTK.Mathematics;
 namespace Egc;
 
 /// <summary>
-/// Schelet minimal de cameră.
-/// Deocamdată ambele matrice sunt matricea identitate, deci vârfurile rămân
-/// în coordonatele lor "native" (NDC). Clasa există ca să avem de pe acum locul
-/// în care vor apărea vizualizarea și proiecția în laboratoarele următoare.
+/// Schelet minimal de cameră (NESCHIMBAT față de laboratorul 2).
+/// Ambele matrice sunt matricea identitate, deci vârfurile rămân în coordonatele
+/// lor "native" (NDC). Proiecția va fi completată în laboratorul următor; ea va
+/// rezolva și deformarea formelor la redimensionarea ferestrei.
 /// </summary>
 public class Camera
 {

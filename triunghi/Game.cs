@@ -8,30 +8,51 @@ namespace Egc;
 
 /// <summary>
 /// Fereastra aplicației și bucla principală (main game loop).
-/// GameWindow apelează automat metodele On... de mai jos, în ordinea descrisă în laborator.
+/// Structura este cea din laboratorul 2; în plus avem mai multe forme (Mesh), timp cu pauză
+/// și uniforme noi pentru vertex shader.
 /// </summary>
 public class Game : GameWindow
 {
+    // Formele disponibile; ordinea trebuie să coincidă cu ordinea din OnLoad și din ShapeNames.
+    private enum ShapeKind { Triangle, Quad, Polygon, Circle, Ring, Grid }
+
+    private static readonly string[] ShapeNames = { "triunghi", "dreptunghi", "poligon", "cerc", "inel", "grilă" };
+
+    // Modurile de desenare parcurse cu tasta M pentru inel (secțiunea 4.5, facultativ).
+    private static readonly PrimitiveType[] RingModes =
+    {
+        PrimitiveType.Points, PrimitiveType.Lines, PrimitiveType.LineStrip, PrimitiveType.LineLoop,
+        PrimitiveType.Triangles, PrimitiveType.TriangleStrip, PrimitiveType.TriangleFan
+    };
+
     // Obiecte care NU depind de OpenGL pot fi create imediat.
     private readonly Camera _camera = new();
 
     // Obiectele care folosesc OpenGL se creează în OnLoad (abia atunci există contextul OpenGL).
     private Shader _shader = null!;
-    private Triangle _triangle = null!;
+    private Mesh[] _meshes = null!;   // câte un Mesh pentru fiecare ShapeKind
 
     // Starea aplicației (se modifică în OnUpdateFrame, se folosește în OnRenderFrame).
-    private Color4 _clearColor = new(0.0f, 0.0f, 0.5f, 0.5f);   // culoarea de fundal
-    private Color4 _tint = new Color4(1.0f, 0.3f, 0.3f, 1.0f);                       // nuanța triunghiului (alb = neschimbat)
-    private Vector3 _offset = new Vector3(0.0f, 0.0f, 0.0f);                   // deplasarea triunghiului
+    private Color4 _clearColor = new(0.2f, 0.3f, 0.3f, 1.0f);   // culoarea de fundal
+    private Color4 _tint = Color4.White;                          // nuanța formei (alb = neschimbat)
+    private Vector3 _offset = Vector3.Zero;                       // deplasarea formei
+    private bool _wireframe;                                      // contur (true) sau plin (false)
 
-    private bool _wireframe = false;
+    // Starea nouă din laboratorul 3.
+    private ShapeKind _shape = ShapeKind.Triangle;   // forma desenată acum
+    private int _sides = 5;                          // numărul de laturi al poligonului
+    private int _ringMode = 3;                       // indexul în RingModes (3 = LineLoop)
+    private bool _paused = false;                    // pauză: timpul animației nu mai curge (se folosește la P5b)
+    private bool _waveOn;                            // unda din vertex shader
+    private int _colorMode;                          // 0 = culoarea din VBO, 1 = culoare din poziție
+    private double _elapsed;                         // timpul animației (secunde)
 
-    // Contoare pentru exemplul cu bucla principală (afișate în titlul ferestrei).
+    // Contoare afișate în titlul ferestrei.
     private readonly string _baseTitle;
-    private double _elapsed;     // timpul total scurs (secunde)
-    private double _secondTimer; // cronometru pentru actualizarea titlului o dată pe secundă
-    private int _updates;        // câte OnUpdateFrame în ultima secundă
-    private int _frames;         // câte OnRenderFrame în ultima secundă
+    private double _secondTimer;
+    private int _updates, _frames;                   // contoare în secunda curentă
+    private int _lastUpdates, _lastFrames;           // valorile afișate
+    private bool _titleDirty = true;                 // titlul trebuie rescris
 
     public Game(int width, int height, string title)
         : base(GameWindowSettings.Default,
@@ -53,18 +74,26 @@ public class Game : GameWindow
     {
         base.OnLoad();
 
-        // Informații despre driverul și placa grafică folosite (vezi Problema 1 din Laboratorul 01).
         Console.WriteLine($"OpenGL  : {GL.GetString(StringName.Version)}");
         Console.WriteLine($"Vendor  : {GL.GetString(StringName.Vendor)}");
         Console.WriteLine($"Renderer: {GL.GetString(StringName.Renderer)}");
 
         GL.Viewport(0, 0, ClientSize.X, ClientSize.Y);
+        GL.PointSize(8.0f);   // dimensiunea punctelor (PrimitiveType.Points și PolygonMode.Point)
 
         _shader = Shader.FromFiles("Shaders/shader.vert", "Shaders/shader.frag");
-        _triangle = new Triangle();
-        _triangle.SetColor(2, 1.0f, 1.0f, 1.0f);
-        _triangle.UpdateVertices();
-        //GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
+        // Ordinea trebuie să fie cea din enum-ul ShapeKind.
+        _meshes = new[]
+        {
+            Shapes.Triangle(),
+            Shapes.Quad(),
+            Shapes.RegularPolygon(_sides, 0.5f),
+            Shapes.RegularPolygon(64, 0.5f),      // "cercul": un poligon cu foarte multe laturi
+            Shapes.Ring(6, 0.6f),
+            Shapes.Grid(16, 8, 1.6f, 0.8f)
+        };
+        _meshes[(int)ShapeKind.Ring].Primitive = RingModes[_ringMode];
     }
 
     /// <summary>Apelată când se schimbă dimensiunea ferestrei.</summary>
@@ -81,72 +110,84 @@ public class Game : GameWindow
     {
         base.OnUpdateFrame(args);
 
-        // args.Time = secundele scurse de la apelul anterior (delta time).
-        _elapsed += args.Time;
+        float dt = (float)args.Time;   // secundele scurse de la apelul anterior
         _updates++;
 
         if (KeyboardState.IsKeyDown(Keys.Escape))
         {
             Close();
         }
-        if (KeyboardState.IsKeyPressed(Keys.D1))
+
+        // --- Din laboratorul 2 (rezolvat; comparați cu soluția voastră) ---------------
+
+        // P2b: nuanța formei (0 = alb, 1 = roșu, 2 = verde, 3 = albastru)
+        if (KeyboardState.IsKeyPressed(Keys.D0)) _tint = Color4.White;
+        if (KeyboardState.IsKeyPressed(Keys.D1)) _tint = new Color4(1.0f, 0.3f, 0.3f, 1.0f);
+        if (KeyboardState.IsKeyPressed(Keys.D2)) _tint = new Color4(0.3f, 1.0f, 0.3f, 1.0f);
+        if (KeyboardState.IsKeyPressed(Keys.D3)) _tint = new Color4(0.3f, 0.3f, 1.0f, 1.0f);
+
+        // P3b: tasta F comută între contur și plin (IsKeyPressed: o singură dată pe apăsare)
+        if (KeyboardState.IsKeyPressed(Keys.F)) _wireframe = !_wireframe;
+
+        // P4c: deplasare cu săgețile, viteză constantă (1 unitate NDC pe secundă) înmulțită cu Δt
+        const float speed = 1.0f;
+        if (KeyboardState.IsKeyDown(Keys.Left))  _offset.X -= speed * dt;
+        if (KeyboardState.IsKeyDown(Keys.Right)) _offset.X += speed * dt;
+        if (KeyboardState.IsKeyDown(Keys.Down))  _offset.Y -= speed * dt;
+        if (KeyboardState.IsKeyDown(Keys.Up))    _offset.Y += speed * dt;
+
+        // --- Laborator 3: alegerea formei ---------------------------------------------
+
+        // Tab: următoarea formă (triunghi -> dreptunghi -> poligon -> cerc -> inel -> grilă -> triunghi ...)
+        if (KeyboardState.IsKeyPressed(Keys.Tab))
         {
-            _tint = new Color4(1.0f, 0.3f, 0.3f, 1.0f); 
-        }
-        if (KeyboardState.IsKeyPressed(Keys.D2))
-        {
-            _tint = new Color4(0.3f, 1.0f, 0.3f, 1.0f); 
-        }
-        if (KeyboardState.IsKeyPressed(Keys.D3))
-        {
-            _tint = new Color4(0.3f, 0.3f, 1.0f, 1.0f); 
-        }
-        if (KeyboardState.IsKeyPressed(Keys.D0))
-        {
-            _tint = Color4.White;
+            _shape = (ShapeKind)(((int)_shape + 1) % _meshes.Length);
+            _titleDirty = true;
         }
 
-        if (KeyboardState.IsKeyPressed(Keys.F))
+        // + / - : numărul de laturi al poligonului (tastele de pe rândul de sus sau din blocul numeric)
+        if (KeyboardState.IsKeyPressed(Keys.Equal) || KeyboardState.IsKeyPressed(Keys.KeyPadAdd)) ChangeSides(+1);
+        if (KeyboardState.IsKeyPressed(Keys.Minus) || KeyboardState.IsKeyPressed(Keys.KeyPadSubtract)) ChangeSides(-1);
+
+        // M: modul de desenare al inelului (facultativ, secțiunea 4.5)
+        if (KeyboardState.IsKeyPressed(Keys.M))
         {
-            _wireframe = !_wireframe;
+            _ringMode = (_ringMode + 1) % RingModes.Length;
+            _meshes[(int)ShapeKind.Ring].Primitive = RingModes[_ringMode];
+            _titleDirty = true;
         }
 
-        if (KeyboardState.IsKeyDown(Keys.Left))
-        {
-            _offset.X -= 1 * (float)args.Time;
-        }
-        if (KeyboardState.IsKeyDown(Keys.Right))
-        {
-            _offset.X += 1 * (float)args.Time;
-        }
-        if (KeyboardState.IsKeyDown(Keys.Up))
-        {
-            _offset.Y += 1 * (float)args.Time;
-        }
-        if (KeyboardState.IsKeyDown(Keys.Down))
-        {
-            _offset.Y -= 1 * (float)args.Time;
-        }
+        // --- Laborator 3: vertex shader --------------------------------------------
 
-        // --- TODO (P1–P5): codul vostru de logică se adaugă aici ---
-        _clearColor.R = 0.5f + 0.5f * MathF.Sin((float)_elapsed);
-        _clearColor.G = 0.5f + 0.5f * MathF.Sin((float)_elapsed - (2*MathF.PI)/3);
-        _clearColor.B = 0.5f + 0.5f * MathF.Sin((float)_elapsed - (4*MathF.PI)/3);
-        //_offset.X = 0.5f * MathF.Sin((float)_elapsed);
+        // W: unda în vertex shader pornită / oprită.  C: culoarea din VBO / calculată din poziție.
+        if (KeyboardState.IsKeyPressed(Keys.W)) _waveOn = !_waveOn;
+        if (KeyboardState.IsKeyPressed(Keys.C)) _colorMode = 1 - _colorMode;
 
-        _triangle.SetPosition(0, 0.5f - 0.4f * MathF.Sin((float)_elapsed), 0f);
-        _triangle.SetPosition(1, 0.5f + 0.3f * MathF.Cos((float)_elapsed), 0f);
-        _triangle.SetPosition(2, 0.5f + 0.4f * MathF.Sin((float)_elapsed), 0.5f + 0.4f * MathF.Sin((float)_elapsed));
-        _triangle.UpdateVertices();
-        // Exemplul bucla principală: o dată pe secundă afișăm în titlu câte
-        // actualizări și câte cadre desenate au avut loc.
+        // --- Laborator 3: timpul animației ---------------------------------------------
+
+        // TODO (P5b): tasta P comută pauza (_paused = !_paused; _titleDirty = true), iar timpul crește
+        //             doar când NU suntem în pauză. Până atunci timpul curge mereu:
+        _elapsed += args.Time;
+
+        // TODO (P4a): fundalul își schimbă nuanța în timp (HSV):
+        //     _clearColor = ColorUtil.FromHsv(<nuanța, calculată din _elapsed>, 0.5f, 0.35f);
+
+        // --- Titlul ferestrei: forma curentă + câte actualizări / cadre au avut loc în ultima secundă ---
         _secondTimer += args.Time;
         if (_secondTimer >= 1.0)
         {
-            Title = $"{_baseTitle} | update/s: {_updates} | render/s: {_frames}";
+            _lastUpdates = _updates;
+            _lastFrames = _frames;
             _updates = 0;
             _frames = 0;
             _secondTimer -= 1.0;
+            _titleDirty = true;
+        }
+
+        if (_titleDirty)
+        {
+            RefreshTitle();
+            _titleDirty = false;
         }
     }
 
@@ -156,28 +197,27 @@ public class Game : GameWindow
         base.OnRenderFrame(args);
         _frames++;
 
-        // 1. Ștergem imaginea veche din back buffer. GL.ClearColor SETEAZĂ starea (culoarea de ștergere),
-        //    GL.Clear o FOLOSEȘTE. Aici o setăm la fiecare cadru pentru că vom putea s-o schimbăm (P1).
+        // 1. Ștergem imaginea veche din back buffer.
         GL.ClearColor(_clearColor.R, _clearColor.G, _clearColor.B, _clearColor.A);
         GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        // 2. Activăm programul shader și îi trimitem uniformele.
+        // 2. Starea de rasterizare (contur / plin) și programul shader cu uniformele lui.
+        SetWireframe(_wireframe);
+
         _shader.Use();
         _shader.SetMatrix4("uView", _camera.ViewMatrix);
         _shader.SetMatrix4("uProjection", _camera.ProjectionMatrix);
         _shader.SetVector3("uOffset", _offset);
         _shader.SetColor("uTint", _tint);
-        
-         if (_wireframe)
-        {
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
-        } else
-        {
-            GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-        }
 
-        // 3. Desenăm triunghiul.
-        _triangle.Draw();
+        // Uniformele noi din laboratorul 3 (le citește vertex shaderul)
+        _shader.SetFloat("uTime", (float)_elapsed);
+        _shader.SetFloat("uWaveAmplitude", _waveOn ? 0.08f : 0.0f);
+        _shader.SetFloat("uWaveFrequency", 6.0f);
+        _shader.SetInt("uColorMode", _colorMode);
+
+        // 3. Desenăm forma aleasă.
+        _meshes[(int)_shape].Draw();
 
         // 4. Afișăm cadrul terminat: back buffer <-> front buffer.
         SwapBuffers();
@@ -186,9 +226,54 @@ public class Game : GameWindow
     /// <summary>Apelată O SINGURĂ DATĂ, la închiderea ferestrei: eliberăm resursele GPU.</summary>
     protected override void OnUnload()
     {
-        _triangle.Dispose();
+        foreach (Mesh mesh in _meshes)
+        {
+            mesh.Dispose();
+        }
         _shader.Dispose();
 
         base.OnUnload();
+    }
+
+    /// <summary>
+    /// Contur / plin. Dacă Visual Studio semnalează o eroare la primul parametru,
+    /// folosiți aici tipul acceptat de versiunea voastră (vezi laboratorul 2, Problema 3):
+    /// TriangleFace.FrontAndBack sau MaterialFace.FrontAndBack. Este singurul loc din proiect care îl folosește.
+    /// </summary>
+    private static void SetWireframe(bool wireframe)
+    {
+        GL.PolygonMode(TriangleFace.FrontAndBack, wireframe ? PolygonMode.Line : PolygonMode.Fill);
+    }
+
+    /// <summary>Schimbă numărul de laturi al poligonului (3..64) și reconstruiește forma.</summary>
+    private void ChangeSides(int delta)
+    {
+        int sides = Math.Clamp(_sides + delta, 3, 64);
+        if (sides == _sides)
+        {
+            return;
+        }
+
+        _sides = sides;
+
+        // O formă nouă = buffere noi în GPU. Eliberăm mai întâi pe cele vechi.
+        int index = (int)ShapeKind.Polygon;
+        _meshes[index].Dispose();
+        _meshes[index] = Shapes.RegularPolygon(_sides, 0.5f);
+        _titleDirty = true;
+    }
+
+    private void RefreshTitle()
+    {
+        string name = ShapeNames[(int)_shape];
+        string detail = _shape switch
+        {
+            ShapeKind.Polygon => $" (n = {_sides})",
+            ShapeKind.Ring => $" ({RingModes[_ringMode]})",
+            _ => ""
+        };
+        string pause = _paused ? " | PAUZĂ" : "";
+
+        Title = $"{_baseTitle} | {name}{detail} | update/s: {_lastUpdates} | render/s: {_lastFrames}{pause}";
     }
 }
