@@ -52,3 +52,5 @@ Am pus pauză doar la calculele care folosesc diferența de timp locală, nu la 
 
 pentru CPU:
 1.000.000 vârfuri * 6 valori * 4 bytes = 24 MB/frame 
+
+Acum: uTime, uWaveAmplitude, uWaveFrequency, uColorMode = 4B + 4B + 4B + 4B = 16B
