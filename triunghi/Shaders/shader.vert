@@ -23,11 +23,14 @@ void main()
     vec3 position = aPosition;
 
     // TODO (P5a): unda. Deplasati pozitia pe verticala cu o sinusoida care depinde de x si de timp:
-    //   position.y += uWaveAmplitude * sin(uWaveFrequency * position.x + uTime);
+    position.y += uWaveAmplitude * sin(uWaveFrequency * position.x + uTime);
 
     // TODO (P5c): daca uColorMode este 1, culoarea se calculeaza din pozitie, nu din VBO:
-    //   vColor = aPosition * 0.5 + 0.5;
-    vColor = aColor;
+    if(uColorMode == 1){
+        vColor = aPosition * 0.5 + 0.5;
+    }else {
+        vColor = aColor;
+    }
 
     gl_Position = uProjection * uView * vec4(position + uOffset, 1.0);
 }

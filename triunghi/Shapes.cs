@@ -40,10 +40,10 @@ public static class Shapes
         // TODO (P1a): completați cele 4 vârfuri cu SetVertex, de exemplu:
         //     SetVertex(vertices, 0, -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f);   // vârful 0: stânga-jos, roșu
         //     ... vârfurile 1, 2, 3 (poziții și culori din tabel)
-        SetVertex(vertices, 0, -0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f);//BL
-        SetVertex(vertices, 1, 0.5f, -0.5f, 0.0f,   1.0f, 1.0f, 0.0f);//BR
-        SetVertex(vertices, 2, -0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 1.0f);//TL
-        SetVertex(vertices, 3, 0.5f, 0.5f, 0.0f,   1.0f, 0.0f, 0.0f);//TR
+        SetVertex(vertices, 0, -1f, -1f, 0.0f,   1.0f, 0.0f, 0.0f);//BL
+        SetVertex(vertices, 1, 1f, -1f, 0.0f,   1.0f, 1.0f, 0.0f);//BR
+        SetVertex(vertices, 2, -1f, 1f, 0.0f,   1.0f, 0.0f, 1.0f);//TL
+        SetVertex(vertices, 3, 1f, 1f, 0.0f,   1.0f, 0.0f, 0.0f);//TR
         // TODO (P1b): completați cei 6 indici (două triunghiuri, în sens trigonometric), de exemplu:
         //     indices[0] = 0; indices[1] = 1; indices[2] = 2;   // primul triunghi
         //     ... al doilea triunghi

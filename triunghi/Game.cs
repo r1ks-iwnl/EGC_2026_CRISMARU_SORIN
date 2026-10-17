@@ -167,10 +167,14 @@ public class Game : GameWindow
 
         // TODO (P5b): tasta P comută pauza (_paused = !_paused; _titleDirty = true), iar timpul crește
         //             doar când NU suntem în pauză. Până atunci timpul curge mereu:
-        _elapsed += args.Time;
+        if(KeyboardState.IsKeyPressed(Keys.P)) _paused = !_paused;
+
+        if(!_paused){
+            _elapsed += args.Time;
+        }
 
         // TODO (P4a): fundalul își schimbă nuanța în timp (HSV):
-        //     _clearColor = ColorUtil.FromHsv(<nuanța, calculată din _elapsed>, 0.5f, 0.35f);
+        _clearColor = ColorUtil.FromHsv((float)(_elapsed*0.5f), 1f, 0.35f);
 
         // --- Titlul ferestrei: forma curentă + câte actualizări / cadre au avut loc în ultima secundă ---
         _secondTimer += args.Time;
