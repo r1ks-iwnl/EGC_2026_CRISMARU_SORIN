@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Security.Cryptography.X509Certificates;
+using OpenTK.Audio.OpenAL;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
@@ -68,7 +71,7 @@ public static class Shapes
         var indices = new uint[sides * 3];
 
         // TODO (P2a): vârful 0 este centrul (0, 0, 0), de culoare albă:
-        //     SetVertex(vertices, 0, 0.0f, 0.0f, 0.0f, Color4.White);
+        SetVertex(vertices, 0, 0.0f, 0.0f, 0.0f, Color4.White);
 
         for (int i = 0; i < sides; i++)
         {
@@ -76,12 +79,19 @@ public static class Shapes
             float angle = MathF.PI / 2.0f + 2.0f * MathF.PI * i / sides;
 
             // TODO (P2b): coordonatele colțului: x = radius * cos(angle), y = radius * sin(angle)
+            float x = radius * (float)Math.Cos(angle);
+            float y = radius * (float)Math.Sin(angle);
+
             // TODO (P2c): culoarea colțului: nuanța (float)i / sides, saturație 1, luminozitate 1
             //             (ColorUtil.FromHsv). Atenție: i / sides între doi int dă 0!
             // TODO (P2d): colțul i se memorează în vârful 1 + i: SetVertex(vertices, 1 + i, ...)
-
             // TODO (P2e): triunghiul i are indicii 0, 1 + i, 1 + (i + 1) % sides
             //             (indices[3 * i], indices[3 * i + 1], indices[3 * i + 2]; convertiți cu (uint))
+            SetVertex(vertices, i + 1, x, y, 0f, ColorUtil.FromHsv((float)i / sides, 1.0f, 1.0f));
+
+            indices[3 * i] = 0;
+            indices[3 * i + 1] = (uint)(1 + i);
+            indices[3 * i + 2] = (uint)(1 + (1 + i) % sides);
         }
 
         return new Mesh(vertices, indices);
